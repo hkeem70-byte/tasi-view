@@ -1,0 +1,438 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ماسح EMA9 — تبويبان</title>
+<style>
+*{box-sizing:border-box} body{font-family:'Segoe UI',Tahoma,Arial;background:#0f1419;color:#e8eaed;margin:0;padding:18px}
+.head{background:linear-gradient(135deg,#1a2332,#243447);border-radius:14px;padding:18px 22px;border:1px solid #2d3b4f}
+.head h1{margin:0 0 4px;font-size:20px} .sub{color:#9aa6b2;font-size:12.5px}
+.live{margin:10px 0;padding:10px 14px;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45);border-radius:10px;font-size:13px;font-weight:700}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 14px}
+.card{background:#1a2332;border:1px solid #2d3b4f;border-radius:12px;padding:12px 16px;min-width:118px}
+.card .v{font-size:22px;font-weight:700} .card .l{font-size:12px;color:#9aa6b2;margin-top:2px}
+.c3 .v{color:#fbbf24} .c2 .v{color:#34d399} .c1 .v{color:#60a5fa}
+.tabs{display:flex;gap:8px;margin:14px 0 0}
+.tabbtn{padding:11px 22px;border-radius:12px 12px 0 0;background:#1a2332;border:1px solid #2d3b4f;border-bottom:none;color:#9aa6b2;font-size:14.5px;font-weight:700;cursor:pointer}
+.tabbtn.active{background:#1c2735;color:#fbbf24;border-color:#3b4c63}
+.pane{display:none;background:#151c26;border:1px solid #2d3b4f;border-radius:0 12px 12px 12px;padding:10px}
+.pane.active{display:block}
+.clday{margin:6px 0 12px;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:700}
+.cl-hot{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.5)}
+.cl-mid{background:rgba(251,146,60,.10);border:1px solid rgba(251,146,60,.4)}
+.cl-low{background:#1a2332;border:1px solid #2d3b4f;color:#9aa6b2}
+table{width:100%;border-collapse:collapse;background:#151c26;border-radius:10px;overflow:hidden}
+th,td{padding:9px 9px;text-align:right;font-size:12.8px;border-bottom:1px solid #222d3a}
+th{background:#1c2735;color:#b9c4d0;font-weight:600;cursor:pointer} th:hover{background:#243447}
+td.num,th.num{text-align:center;font-variant-numeric:tabular-nums} td.code{font-weight:700;color:#7dd3fc}
+td.name{font-weight:600} td.tag{font-size:12px;font-weight:700} td.tags{font-size:11.5px;color:#c4b5fd}
+.dim{color:#7c8794;font-size:11px} .qs{color:#fbbf24;font-size:15px} .q80{color:#f59e0b;text-shadow:0 0 8px rgba(245,158,11,.6);font-size:16px}
+.pos{color:#34d399;font-weight:700} .neg{color:#f87171;font-weight:700}
+tr.t3{background:rgba(251,191,36,.10)} tr.t2{background:rgba(52,211,153,.07)} tr:hover{background:#1e2a38}
+h2{font-size:15px;color:#b9c4d0;margin:20px 0 6px}
+.note{margin-top:14px;color:#7c8794;font-size:12px;line-height:1.9}
+
+@media (max-width: 900px) {
+  table {display:block; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch}
+  body {padding:8px}
+  .note {font-size:11.5px}
+}
+</style></head><body>
+<div class="head"><h1>⚡ ماسح EMA9 — تجاوز طازج + سيولة داخلة</h1>
+<div class="sub">آخر تحديث: 2026-07-29 06:30 · الشروط: تجاوز EMA9 اليوم + شمعة خضراء + حجم ≥ 1.0× · نفس الإشارات في التبويبين (13)</div></div>
+<div class="live">🛑 البيانات قديمة! آخر شمعة 2026-07-27 — متأخرة 1 يوم تداول. للاطلاع فقط، لا للتداول.</div>
+<div class="cards">
+<div class="card c3"><div class="v">0</div><div class="l">🏆 ممتاز (بمنطقة الفوضى)</div></div>
+<div class="card c2"><div class="v">2</div><div class="l">⭐ قوي (انعكاس+سيولة)</div></div>
+<div class="card c1"><div class="v">11</div><div class="l">🔹 مقبول</div></div>
+</div>
+
+<div class="tabs">
+<div class="tabbtn active" onclick="showTab(0)">📋 العرض الحالي</div>
+<div class="tabbtn" onclick="showTab(1)">📐 الترتيب الكمي</div>
+<div class="tabbtn" onclick="showTab(2)">🕑 الشمعة 2-3</div>
+</div>
+
+<div class="pane active" id="pane0">
+<table class="sortable"><thead><tr>
+<th class="num">#</th><th>الكود</th><th>الاسم</th><th class="num">السعر</th><th class="num">اليوم</th>
+<th class="num">السيولة×</th><th class="num">القيمة</th><th class="num">سيطرة المشترين</th>
+<th class="num">تحت EMA9 قبل التجاوز</th><th class="num">من EMA200</th><th>التقييم</th>
+</tr></thead><tbody>
+<tr class="t2">
+<td class="num">1</td><td class="code">2050</td><td class="name">مجموعة صافولا</td>
+<td class="num">26.50</td><td class="num pos">+4.74%</td>
+<td class="num"><b>2.78×</b></td><td class="num">49.3م</td>
+<td class="num">95%</td>
+<td class="num">21 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">+3.2% <span class="dim">(لا)</span></td>
+<td class="tag">⭐ قوي (انعكاس+سيولة)</td></tr>
+<tr class="t2">
+<td class="num">2</td><td class="code">4270</td><td class="name">طباعة وتغليف</td>
+<td class="num">7.40</td><td class="num pos">+4.96%</td>
+<td class="num"><b>2.31×</b></td><td class="num">11.2م</td>
+<td class="num">60%</td>
+<td class="num">5 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">-9.5% <span class="dim">(لا)</span></td>
+<td class="tag">⭐ قوي (انعكاس+سيولة)</td></tr>
+<tr class="t1">
+<td class="num">3</td><td class="code">2284</td><td class="name">المطاحن الحديثة</td>
+<td class="num">29.28</td><td class="num pos">+3.10%</td>
+<td class="num"><b>2.62×</b></td><td class="num">4.4م</td>
+<td class="num">95%</td>
+<td class="num">1 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">+0.7% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">4</td><td class="code">2083</td><td class="name">مرافق</td>
+<td class="num">38.72</td><td class="num pos">+5.22%</td>
+<td class="num"><b>1.85×</b></td><td class="num">17.3م</td>
+<td class="num">98%</td>
+<td class="num">1 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">+6.3% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">5</td><td class="code">7030</td><td class="name">زين السعودية</td>
+<td class="num">10.25</td><td class="num pos">+0.79%</td>
+<td class="num"><b>1.64×</b></td><td class="num">24.4م</td>
+<td class="num">73%</td>
+<td class="num">2 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">-1.9% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">6</td><td class="code">4018</td><td class="name">الموسى</td>
+<td class="num">117.40</td><td class="num pos">+1.03%</td>
+<td class="num"><b>1.53×</b></td><td class="num">5.2م</td>
+<td class="num">41%</td>
+<td class="num">10 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">-15.6% <span class="dim">(🔥 نعم)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">7</td><td class="code">4200</td><td class="name">الدريس</td>
+<td class="num">114.00</td><td class="num pos">+1.06%</td>
+<td class="num"><b>1.42×</b></td><td class="num">45.8م</td>
+<td class="num">85%</td>
+<td class="num">1 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">-5.3% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">8</td><td class="code">7040</td><td class="name">قو للإتصالات</td>
+<td class="num">86.05</td><td class="num pos">+2.62%</td>
+<td class="num"><b>1.38×</b></td><td class="num">13.9م</td>
+<td class="num">84%</td>
+<td class="num">26 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">-7.6% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">9</td><td class="code">7010</td><td class="name">اس تي سي</td>
+<td class="num">43.32</td><td class="num pos">+0.51%</td>
+<td class="num"><b>1.34×</b></td><td class="num">94.2م</td>
+<td class="num">63%</td>
+<td class="num">2 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">+1.7% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">10</td><td class="code">6012</td><td class="name">ريدان</td>
+<td class="num">14.15</td><td class="num pos">+4.66%</td>
+<td class="num"><b>1.13×</b></td><td class="num">1.0م</td>
+<td class="num">100%</td>
+<td class="num">13 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">-29.2% <span class="dim">(🔥 نعم)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">11</td><td class="code">6016</td><td class="name">برغرايززر</td>
+<td class="num">7.28</td><td class="num pos">+0.97%</td>
+<td class="num"><b>1.05×</b></td><td class="num">2.0م</td>
+<td class="num">61%</td>
+<td class="num">13 يوم <span class="dim">(✅ انعكس)</span></td>
+<td class="num">-13.0% <span class="dim">(🔥 نعم)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">12</td><td class="code">5110</td><td class="name">كهرباء السعودية</td>
+<td class="num">17.79</td><td class="num pos">+0.91%</td>
+<td class="num"><b>1.01×</b></td><td class="num">15.5م</td>
+<td class="num">82%</td>
+<td class="num">1 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">+12.2% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">13</td><td class="code">2230</td><td class="name">الكيميائية</td>
+<td class="num">8.46</td><td class="num pos">+1.81%</td>
+<td class="num"><b>1.00×</b></td><td class="num">24.8م</td>
+<td class="num">95%</td>
+<td class="num">1 يوم <span class="dim">(جزئي)</span></td>
+<td class="num">+7.0% <span class="dim">(لا)</span></td>
+<td class="tag">🔹 مقبول</td></tr>
+</tbody></table>
+</div>
+
+<div class="pane" id="pane1">
+<div class="clday cl-low">⚪ يوم 3-4 (3) — حفرة مقاسة (40.2% — أسوأ من الفردي) — ضجيج · توزّع سيولة اليوم: موزّع ≤35% (46.9 مقاسة) · 🟢 يوم المؤشر أخضر (46% مقاساً)</div>
+<table class="sortable"><thead><tr>
+<th class="num">#</th><th>الكود</th><th>الاسم</th><th class="num">الدرجة</th>
+<th class="num">السعر</th><th class="num">اليوم</th><th class="num">سيولة×</th>
+<th class="num">مشترون</th><th class="num">تحت EMA9</th><th class="num">من EMA200</th>
+<th class="num">فوق EMA9</th><th class="num">عتبة البقاء</th><th class="num">أقرب سقف</th><th>وسوم</th><th>التقييم</th>
+</tr></thead><tbody>
+<tr class="t1">
+<td class="num">1</td><td class="code">6012</td><td class="name">ريدان</td>
+<td class="num"><b class="qs ">61</b></td>
+<td class="num">14.15</td><td class="num pos">+4.66%</td>
+<td class="num">1.13×</td><td class="num">100%</td>
+<td class="num">13ي</td><td class="num">-29.2%</td>
+<td class="num">+2.6%</td>
+<td class="num"><b>13.7</b></td>
+<td class="num">⛰️0.6%</td>
+<td class="tags">🐌نزيف بطيء</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t2">
+<td class="num">2</td><td class="code">2050</td><td class="name">مجموعة صافولا</td>
+<td class="num"><b class="qs ">51</b></td>
+<td class="num">26.50</td><td class="num pos">+4.74%</td>
+<td class="num">2.78×</td><td class="num">95%</td>
+<td class="num">21ي</td><td class="num">+3.2%</td>
+<td class="num">+0.9%</td>
+<td class="num"><b>26.19</b></td>
+<td class="num">🪦0.7%</td>
+<td class="tags">🐌نزيف بطيء 💰موزِّعة ⚡قائد سيولة اليوم (أضعف مقاساً 39%)</td><td class="tag">⭐ قوي (انعكاس+سيولة)</td></tr>
+<tr class="t1">
+<td class="num">3</td><td class="code">4018</td><td class="name">الموسى</td>
+<td class="num"><b class="qs ">45</b></td>
+<td class="num">117.40</td><td class="num pos">+1.03%</td>
+<td class="num">1.53×</td><td class="num">41%</td>
+<td class="num">10ي</td><td class="num">-15.6%</td>
+<td class="num">+0.1%</td>
+<td class="num"><b>117.28</b></td>
+<td class="num">🪦0.3%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">4</td><td class="code">7040</td><td class="name">قو للإتصالات</td>
+<td class="num"><b class="qs ">41</b></td>
+<td class="num">86.05</td><td class="num pos">+2.62%</td>
+<td class="num">1.38×</td><td class="num">84%</td>
+<td class="num">26ي</td><td class="num">-7.6%</td>
+<td class="num">+0.2%</td>
+<td class="num"><b>85.81</b></td>
+<td class="num">🪦0.1%</td>
+<td class="tags">🐌نزيف بطيء 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">5</td><td class="code">6016</td><td class="name">برغرايززر</td>
+<td class="num"><b class="qs ">37</b></td>
+<td class="num">7.28</td><td class="num pos">+0.97%</td>
+<td class="num">1.05×</td><td class="num">61%</td>
+<td class="num">13ي</td><td class="num">-13.0%</td>
+<td class="num">+0.2%</td>
+<td class="num"><b>7.26</b></td>
+<td class="num">🪦0.0%</td>
+<td class="tags">🐌نزيف بطيء 🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t2">
+<td class="num">6</td><td class="code">4270</td><td class="name">طباعة وتغليف</td>
+<td class="num"><b class="qs ">33</b></td>
+<td class="num">7.40</td><td class="num pos">+4.96%</td>
+<td class="num">2.31×</td><td class="num">60%</td>
+<td class="num">5ي</td><td class="num">-9.5%</td>
+<td class="num">+3.6%</td>
+<td class="num"><b>7.07</b></td>
+<td class="num">🪦2.3%</td>
+<td class="tags">🐌نزيف بطيء 🛡️صامد (أضعف مقاساً)</td><td class="tag">⭐ قوي (انعكاس+سيولة)</td></tr>
+<tr class="t1">
+<td class="num">7</td><td class="code">2284</td><td class="name">المطاحن الحديثة</td>
+<td class="num"><b class="qs ">33</b></td>
+<td class="num">29.28</td><td class="num pos">+3.10%</td>
+<td class="num">2.62×</td><td class="num">95%</td>
+<td class="num">1ي</td><td class="num">+0.7%</td>
+<td class="num">+2.1%</td>
+<td class="num"><b>28.51</b></td>
+<td class="num">⛰️0.3%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">8</td><td class="code">4200</td><td class="name">الدريس</td>
+<td class="num"><b class="qs ">25</b></td>
+<td class="num">114.00</td><td class="num pos">+1.06%</td>
+<td class="num">1.42×</td><td class="num">85%</td>
+<td class="num">1ي</td><td class="num">-5.3%</td>
+<td class="num">+0.6%</td>
+<td class="num"><b>113.21</b></td>
+<td class="num">⛰️1.1%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">9</td><td class="code">2230</td><td class="name">الكيميائية</td>
+<td class="num"><b class="qs ">25</b></td>
+<td class="num">8.46</td><td class="num pos">+1.81%</td>
+<td class="num">1.00×</td><td class="num">95%</td>
+<td class="num">1ي</td><td class="num">+7.0%</td>
+<td class="num">+1.2%</td>
+<td class="num"><b>8.33</b></td>
+<td class="num">⛰️0.8%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة 🧱منطقة طلب</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">10</td><td class="code">7030</td><td class="name">زين السعودية</td>
+<td class="num"><b class="qs ">25</b></td>
+<td class="num">10.25</td><td class="num pos">+0.79%</td>
+<td class="num">1.64×</td><td class="num">73%</td>
+<td class="num">2ي</td><td class="num">-1.9%</td>
+<td class="num">+0.6%</td>
+<td class="num"><b>10.18</b></td>
+<td class="num">⛰️0.2%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">11</td><td class="code">5110</td><td class="name">كهرباء السعودية</td>
+<td class="num"><b class="qs ">25</b></td>
+<td class="num">17.79</td><td class="num pos">+0.91%</td>
+<td class="num">1.01×</td><td class="num">82%</td>
+<td class="num">1ي</td><td class="num">+12.2%</td>
+<td class="num">+0.6%</td>
+<td class="num"><b>17.65</b></td>
+<td class="num">⛰️3.9%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">12</td><td class="code">7010</td><td class="name">اس تي سي</td>
+<td class="num"><b class="qs ">20</b></td>
+<td class="num">43.32</td><td class="num pos">+0.51%</td>
+<td class="num">1.34×</td><td class="num">63%</td>
+<td class="num">2ي</td><td class="num">+1.7%</td>
+<td class="num">+0.1%</td>
+<td class="num"><b>43.28</b></td>
+<td class="num">⛰️0.1%</td>
+<td class="tags">🛡️صامد (أضعف مقاساً) 💰موزِّعة</td><td class="tag">🔹 مقبول</td></tr>
+<tr class="t1">
+<td class="num">13</td><td class="code">2083</td><td class="name">مرافق</td>
+<td class="num"><b class="qs ">11</b></td>
+<td class="num">38.72</td><td class="num pos">+5.22%</td>
+<td class="num">1.85×</td><td class="num">98%</td>
+<td class="num">1ي</td><td class="num">+6.3%</td>
+<td class="num">+4.0%</td>
+<td class="num"><b>36.86</b></td>
+<td class="num">⛰️0.7%</td>
+<td class="tags">🐌نزيف بطيء 🛡️صامد (أضعف مقاساً) 💰موزِّعة 🥵مستنفَدة 5-7%</td><td class="tag">🔹 مقبول</td></tr>
+</tbody></table>
+<div class="note">
+🎯 صيد الغد (22,844 إشارة): عنقود≥8+عمق≤−15 → غد أخضر <b>58%</b> (والثلاثية +سيولة1.5-2× → <b>66%</b> بثبات 71/61) — وسم 🎯.
+🥵 القفزة <b>5-7%</b> مستنفدة (أحمر غداً 60%، عائد سالب، حجم يموت) — خصم؛ أما ≥7% فتخترق قمة الأمس 77% (حدّية — حياد).
+⏳ الصبر: عائد الغد +0.2% فقط لكن أفضل 3 أيام +1.5% — <b>ربحك يتشكل في 2-3 أيام لا غداً</b>.<br>⛰️ <b>البنية السعرية (22,353 إشارة):</b> «أقرب سقف» = أقرب قمة محورية/قاع مكسور فوق السعر (250ي).
+النمط مقاس ورتيب: خانق<2% → 43.2% · فسيح 10-20% → <b>52.6% (56/48 ثابتة)</b> · 🌤️ نادرة (~2%).
+وسيط أسهم الفوضى 0.8% — الازدحام حالتها الطبيعية، فالمعلومة تمييز الفسيح لا تخويف من المزدحم.
+أنواع السقف متساوية الفتك تقريباً. 🚀فوق قمة 40ي: 46.7% (44/49 — غير ثابتة، إخبارية).
+الترند الصاعد كدعم قِيس (22,124 إشارة، أفقان) <b>ورُفض</b>: الارتداد منه 41.3% والملاصق له ≤2% → 40%
+(سالبان ثابتان) — لا أمان في الخطوط؛ الحافة في الانهيار الجماعي لا في الأسهم الممسوكة بترنداتها.<br>
+📏 <b>عرض اليوم (22,372 إشارة):</b> السلّم ليس سلّماً — فردي 41.1 / ثنائي 42.5 / <b>3-4 حفرة 40.2</b> /
+<b>5-7 عنقود صغير 50.0 (53/49 ✅)</b> / ≥8 الملك 53.8 — والعدد بلا فوضى لا يعمل (5-7 إجمالي = 40.1).
+⚡قائد سيولة اليوم أضعف إخوته (39.0، رتيبة معكوسة)؛ وداخل صيد58: الأهدأ 58.7 (65/53) مقابل القادة 53.1.
+توزّع سيولة اليوم: الموزّع ≤35% (46.9) أفضل من المركّز >50% (40.2).
+بصمات الكميات (OBV/AD/تجميع مخفي) قِيست <b>ورُفضت كلها</b> (42-44%، ومغرياتها التراصية سراب نصف أول).<br>
+⏱️ <b>تشغيل 3:15 والتنفيذ بسعر الإغلاق (3:10-3:20):</b> الإشارة تبقى سليمة ما دام الإغلاق النهائي فوق
+<b>«عتبة البقاء»</b> (= EMA9 الأمس — رقم ثابت أثناء الجلسة) وفوق افتتاحه. راقب حياً القريبين من عتبتهم
+(المزاد قد يقلبهم)؛ والحجم لا ينقص بالمزاد — من نجح سيولةً بقي.<br>🏢 القطاعات (22,857 إشارة): الريتات أضعف ثابت (غد أخضر 40.9%) — خصم؛ البنوك والأسمنت أدنى قليلاً (42-43%) — معلومة.
+💰 التوزيعات (22,293 إشارة، نقطة-بنقطة): <b>أقوى تراص وجدناه</b> — صيد58+💰موزِّعة → <b>62.7%</b>
+(نصفان 66/57!) مقابل 55.5% لغير الموزِّعة. منفردة +1.8 فقط (وسم بلا نقاط). العائد >6% لا يضيف (فخّ قيمة).
+🧱 منطقة الطلب (SMC، 22,298 إشارة): لا تعني شيئاً منفردة (43.7%) لكنها ترفع أيام الصيد بثبات:
+صيد58+🧱 → <b>60.4%</b> (67/53) وعنقود+🧱 → 55.8% (60/53). وسم معلوماتي بلا نقاط.
+مرفوضات SMC المقاسة: الاجتياح (41.6)، CHoCH (41.5)، BOS والاختراق (عينات صغيرة بلا ثبات).
+🪤 الكسر الوهمي/نابض وايكوف (نسخة النطاق، 6,164 حالة): <b>مقلوب</b> — طيرانه دون الأيام العادية
+(14.1 مقابل 16.4% لـ+10%/20ي) وغده 37.8% أسوأ الجدول — مدرسة اصطياد الوقوف مدفونة من زاويتيها.
+«على وشك التجاوز» ليست للدخول المبكر: 33% فقط يعبرون غداً واقتصادها صفري — للمراقبة فقط.<br>
+📐 معايرة مقاسة على 22,677 إشارة (15.5 سنة): <b>درجة 80+ → PF 1.92 وWin 62% (ثابتة النصفين)</b> ·
+60-79 → PF 1.81 · <b>دون 60 → بلا أفضلية مقاسة</b> (لا تفرّق عن العادي). القوة النسبية مضافة بعد تأكيدها
+(صامد 0.98 / منهار أعمق 3.11 — متدرّجة وثابتة). الاستمرارية اختُبرت <b>ورُفضت</b> (5.64→1.16 غير ثابتة).
+ترتيب استرشادي — الحافة المثبتة الوحيدة: يوم العنقود ≥8.
+</div>
+</div>
+
+<div class="pane" id="pane2">
+<div class="clday cl-low">🕑 شمعة ثانية: 10 (يوم تجاوزها عنقود 1) · شمعة ثالثة: 13 (عنقود 3) — أسهم تجاوزت بالشروط الثلاثة قبل يوم أو يومين</div>
+<table class="sortable"><thead><tr>
+<th class="num">#</th><th>الكود</th><th>الاسم</th><th class="num">الشمعة</th>
+<th class="num">السعر</th><th class="num">اليوم</th><th class="num">منذ التجاوز</th>
+<th class="num">EMA9</th><th class="num">سيولة اليوم×</th><th class="num">من EMA200</th><th class="num">السقف</th><th>إرث</th>
+</tr></thead><tbody>
+<tr class="t2"><td class="num">1</td><td class="code">4004</td><td class="name">دله الصحية</td><td class="num">ش2</td><td class="num">108.60</td><td class="num pos">+2.07%</td><td class="num pos"><b>+2.07%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">2.84×</td><td class="num">-8.7%</td><td class="num">🪦1.2%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">2</td><td class="code">4030</td><td class="name">البحري</td><td class="num">ش2</td><td class="num">33.46</td><td class="num pos">+1.46%</td><td class="num pos"><b>+1.46%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">2.30×</td><td class="num">+10.1%</td><td class="num">⛰️1.0%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">3</td><td class="code">4291</td><td class="name">الوطنية للتعليم</td><td class="num">ش2</td><td class="num">130.20</td><td class="num pos">+1.24%</td><td class="num pos"><b>+1.24%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">3.93×</td><td class="num">-1.8%</td><td class="num">⛰️2.5%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">4</td><td class="code">4164</td><td class="name">النهدي</td><td class="num">ش2</td><td class="num">93.20</td><td class="num pos">+0.22%</td><td class="num pos"><b>+0.22%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">1.88×</td><td class="num">-6.6%</td><td class="num">🪦1.0%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">5</td><td class="code">4348</td><td class="name">الخبير ريت</td><td class="num">ش2</td><td class="num">5.74</td><td class="num pos">+0.00%</td><td class="num pos"><b>+0.00%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">0.32×</td><td class="num">+2.7%</td><td class="num"><span class="pos">🌤️ مفتوح</span></td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">6</td><td class="code">1320</td><td class="name">أنابيب السعودية</td><td class="num">ش2</td><td class="num">49.02</td><td class="num neg">-0.24%</td><td class="num neg"><b>-0.24%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">0.89×</td><td class="num">+0.2%</td><td class="num">🪦0.5%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">7</td><td class="code">2130</td><td class="name">صدق</td><td class="num">ش2</td><td class="num">16.50</td><td class="num neg">-0.78%</td><td class="num neg"><b>-0.78%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">0.42×</td><td class="num">+1.3%</td><td class="num">⛰️1.2%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">8</td><td class="code">4332</td><td class="name">جدوى ريت الحرمين</td><td class="num">ش2</td><td class="num">4.85</td><td class="num neg">-1.02%</td><td class="num neg"><b>-1.02%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">1.68×</td><td class="num">-2.4%</td><td class="num">⛰️0.6%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">9</td><td class="code">6070</td><td class="name">الجوف</td><td class="num">ش2</td><td class="num">41.30</td><td class="num neg">-1.24%</td><td class="num neg"><b>-1.24%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">1.05×</td><td class="num">-9.3%</td><td class="num">🪦0.9%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">10</td><td class="code">4014</td><td class="name">دار المعدات</td><td class="num">ش2</td><td class="num">27.76</td><td class="num neg">-1.42%</td><td class="num neg"><b>-1.42%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">2.60×</td><td class="num">-11.0%</td><td class="num">🪦2.5%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">11</td><td class="code">4013</td><td class="name">سليمان الحبيب</td><td class="num">ش3</td><td class="num">231.60</td><td class="num pos">+4.09%</td><td class="num pos"><b>+7.67%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">2.60×</td><td class="num">-2.1%</td><td class="num">🪦2.4%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">12</td><td class="code">8311</td><td class="name">عناية</td><td class="num">ش3</td><td class="num">9.80</td><td class="num pos">+4.37%</td><td class="num pos"><b>+5.72%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">1.08×</td><td class="num">+2.2%</td><td class="num">⛰️0.4%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">13</td><td class="code">1303</td><td class="name">الصناعات الكهربائية</td><td class="num">ش3</td><td class="num">15.34</td><td class="num pos">+2.47%</td><td class="num pos"><b>+3.44%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">1.28×</td><td class="num">+10.6%</td><td class="num">🪦1.4%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">14</td><td class="code">2190</td><td class="name">سيسكو القابضة</td><td class="num">ش3</td><td class="num">37.00</td><td class="num pos">+1.43%</td><td class="num pos"><b>+2.38%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">1.68×</td><td class="num">+13.0%</td><td class="num">⛰️0.2%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">15</td><td class="code">2110</td><td class="name">الكابلات السعودية</td><td class="num">ش3</td><td class="num">160.70</td><td class="num neg">-0.19%</td><td class="num pos"><b>+0.82%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">0.56×</td><td class="num">+4.2%</td><td class="num">🪦0.2%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">16</td><td class="code">1210</td><td class="name">بي سي آي</td><td class="num">ش3</td><td class="num">23.38</td><td class="num neg">-0.38%</td><td class="num pos"><b>+0.17%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">2.18×</td><td class="num">-7.3%</td><td class="num">🪦0.8%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">17</td><td class="code">1831</td><td class="name">مهارة</td><td class="num">ش3</td><td class="num">5.35</td><td class="num pos">+0.38%</td><td class="num neg"><b>-0.37%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">0.37×</td><td class="num">+11.5%</td><td class="num">⛰️0.0%</td><td class="tag"></td></tr>
+<tr class="t2"><td class="num">18</td><td class="code">4292</td><td class="name">عطاء</td><td class="num">ش3</td><td class="num">46.80</td><td class="num pos">+1.04%</td><td class="num neg"><b>-0.85%</b></td><td class="num"><span class="pos">فوق</span></td><td class="num">0.28×</td><td class="num">-13.7%</td><td class="num">🪦1.8%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">19</td><td class="code">1214</td><td class="name">شاكر</td><td class="num">ش3</td><td class="num">13.17</td><td class="num neg">-0.83%</td><td class="num neg"><b>-0.23%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">0.78×</td><td class="num">-21.1%</td><td class="num">🪦1.3%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">20</td><td class="code">2360</td><td class="name">الفخارية</td><td class="num">ش3</td><td class="num">17.24</td><td class="num pos">+0.47%</td><td class="num neg"><b>-0.35%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">0.25×</td><td class="num">-15.5%</td><td class="num">🪦1.2%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">21</td><td class="code">4070</td><td class="name">تهامة</td><td class="num">ش3</td><td class="num">17.25</td><td class="num neg">-1.03%</td><td class="num neg"><b>-0.98%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">0.25×</td><td class="num">-4.2%</td><td class="num">⛰️0.6%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">22</td><td class="code">2222</td><td class="name">أرامكو السعودية</td><td class="num">ش3</td><td class="num">26.56</td><td class="num neg">-0.15%</td><td class="num neg"><b>-1.04%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">1.04×</td><td class="num">+2.7%</td><td class="num">🪦0.0%</td><td class="tag"></td></tr>
+<tr class=""><td class="num">23</td><td class="code">2320</td><td class="name">البابطين</td><td class="num">ش3</td><td class="num">58.85</td><td class="num pos">+0.00%</td><td class="num neg"><b>-3.13%</b></td><td class="num"><span class="neg">⚠️كسر</span></td><td class="num">1.63×</td><td class="num">-6.7%</td><td class="num">🪦1.2%</td><td class="tag"></td></tr>
+</tbody></table>
+<div class="note">
+🕑 <b>مقاس (22,836 إشارة/15.5 سنة):</b> الشمعة 1 تبقى الأفضل (صيد58: +1.26/صفقة، النخبة +1.88).
+<b>الشمعة 2 وما زال فوق EMA9: تحفظ ~60% من الحافة</b> (صيد58: +0.71 بثبات 0.70/0.73، النخبة +1.14
+بثبات 1.13/1.16) — دخول متأخر مشروع. <b>الشمعة 3: الحافة تتبخر</b> (+0.2-0.5 وغير ثابتة) — للمراقبة
+لا للدخول. شرط «شمعتها خضراء» لا يضيف فوق «فوق EMA9». 🎯 = يوم تجاوزه كان يوم صيد
+(عنقود≥8 + عمق≤−15). ⚠️كسر = عاد تحت EMA9 (خارج القياس — معلومة لا حجب).
+⛰️ <b>طمأنة مقاسة:</b> خوف «دخول ش2 فيصطدم بسقف» اختُبر على 17,115 حالة — <b>غير مثبت</b>
+(النتيجة مسطّحة عبر كل نطاقات السقوف). العمود معلومة سياق، لا مانع دخول.<br>
+الترتيب الافتراضي: <b>المؤهّل أولاً</b> (فوق EMA9 ثم إرث 🎯) ثم «منذ التجاوز» — وبلا 🎯 فالقائمة مراقبة
+لا دخول (ش2 على الإشارات الفردية: +0.06% ≈ عملة). ملاحظة: في ش2 «منذ التجاوز» = «اليوم» بالتعريف (جلسة واحدة).
+</div>
+</div>
+
+<h2>👀 على وشك التجاوز (تحت EMA9 بأقل من 1.5%) — راقبها للدخول فور التجاوز</h2>
+<table><thead><tr><th>الكود</th><th>الاسم</th><th class="num">السعر</th><th class="num">المسافة لـEMA9</th><th class="num">السيولة×</th><th class="num">من EMA200</th></tr></thead>
+<tbody><tr><td class="code">2210</td><td class="name">نماء للكيماويات</td><td class="num">18.74</td><td class="num">−0.00%</td><td class="num">0.00×</td><td class="num">-11.6%</td></tr>
+<tr><td class="code">4339</td><td class="name">دراية ريت</td><td class="num">5.37</td><td class="num">−0.01%</td><td class="num">0.74×</td><td class="num">+2.9%</td></tr>
+<tr><td class="code">4031</td><td class="name">الخدمات الأرضية</td><td class="num">28.06</td><td class="num">−0.03%</td><td class="num">1.24×</td><td class="num">-19.1%</td></tr>
+<tr><td class="code">8012</td><td class="name">جزيرة تكافل</td><td class="num">12.31</td><td class="num">−0.05%</td><td class="num">0.51×</td><td class="num">+5.9%</td></tr>
+<tr><td class="code">4324</td><td class="name">بنان</td><td class="num">3.08</td><td class="num">−0.07%</td><td class="num">0.36×</td><td class="num">-14.6%</td></tr>
+<tr><td class="code">8010</td><td class="name">التعاونية</td><td class="num">138.80</td><td class="num">−0.10%</td><td class="num">0.73×</td><td class="num">+2.7%</td></tr>
+<tr><td class="code">3040</td><td class="name">أسمنت القصيم</td><td class="num">45.10</td><td class="num">−0.11%</td><td class="num">1.56×</td><td class="num">+4.5%</td></tr>
+<tr><td class="code">8170</td><td class="name">الاتحاد</td><td class="num">7.14</td><td class="num">−0.11%</td><td class="num">2.47×</td><td class="num">-9.8%</td></tr>
+<tr><td class="code">2360</td><td class="name">الفخارية</td><td class="num">17.24</td><td class="num">−0.12%</td><td class="num">0.25×</td><td class="num">-15.5%</td></tr>
+<tr><td class="code">1214</td><td class="name">شاكر</td><td class="num">13.17</td><td class="num">−0.14%</td><td class="num">0.78×</td><td class="num">-21.1%</td></tr>
+<tr><td class="code">4333</td><td class="name">تعليم ريت</td><td class="num">10.50</td><td class="num">−0.14%</td><td class="num">1.86×</td><td class="num">+3.8%</td></tr>
+<tr><td class="code">2090</td><td class="name">جبسكو</td><td class="num">14.04</td><td class="num">−0.16%</td><td class="num">0.12×</td><td class="num">-10.1%</td></tr></tbody></table>
+<div class="note">
+🏆 = سيولة قوية (≥1.5×) + انعكاس (3+ أيام) داخل الفوضى · ⭐ = خارجها · 🔹 = سيولة عادية.<br>
+⏱️ التجاوز يُقاس على شمعة اليوم — الأدقّ بعد الإغلاق (3:30م).
+</div>
+<script>
+function showTab(k){
+  document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('active',i===k));
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>b.classList.toggle('active',i===k));
+}
+document.querySelectorAll('table.sortable').forEach(tb=>{
+  tb.querySelectorAll('th').forEach((th,idx)=>{th.addEventListener('click',()=>{
+    const body=tb.querySelector('tbody');const rows=Array.from(body.querySelectorAll('tr'));const asc=th._a=!th._a;
+    rows.sort((a,b)=>{let x=a.children[idx].innerText.replace(/[^0-9.\-]/g,'');let y=b.children[idx].innerText.replace(/[^0-9.\-]/g,'');
+    if(x!==''&&y!==''&&!isNaN(x)&&!isNaN(y)){x=+x;y=+y}else{x=a.children[idx].innerText;y=b.children[idx].innerText}
+    return (x<y?-1:x>y?1:0)*(asc?1:-1)});rows.forEach(r=>body.appendChild(r))})});
+});
+</script><div class="note" style="columns:2;-webkit-columns:2;column-gap:26px">
+<b>🗝️ مفتاح الرموز — سطر لكل رمز (بالأرقام المقاسة على 15.5 سنة):</b><br>
+🎯يوم عنقود — الإشارة وقعت في يوم عبور جماعي ≥8 داخل الفوضى (قلب النظام: 53.9%).<br>
+🎯صيد58% — يوم عنقود + عمق ≤−15% تحت EMA200 → غد أخضر 57.9%.<br>
+🎯صيد66% — النخبة: عنقود + عمق ≤−20% + سيولة 1.5-2× → 66.5-66.9% (أُعيد إنتاجها 3 مرات).<br>
+💰موزِّعة — وزّعت نقداً خلال آخر 12 شهراً؛ أقوى تراص: صيد58+💰 = 62.7% (66/57).<br>
+🧱منطقة طلب — قاع اليوم لمس آخر منطقة تجميع (حمراء سبقت اندفاعة ≥5%)؛ صيد58+🧱 = 60.4%.<br>
+💥انهار مع السوق — أضعف من المؤشر بـ10+ نقاط في 20ي؛ ارتداده أقوى (3.11%) → +10 نقاط.<br>
+🛡️صامد — لم يهبط مع السوق؛ لا ذعر فلا انفجار (0.98%) → −8 نقاط (أضعف مقاساً).<br>
+🚀انهيار سريع — بلغ قاعه سريعاً (≤10ي)؛ ارتداد أنظف → +10.<br>
+🐌نزيف بطيء — هبوط ممتد شهوراً؛ يستأنف غالباً (45.6%) → −5.<br>
+⚠️مطاردة — التجاوز بعيد فوق EMA9 (>5%)؛ دخول متأخر (PF 0.69 تاريخياً).<br>
+🥵مستنفَدة — شمعة اليوم +5-7%؛ استنفدت وقود الغد (41.7%) → −6.<br>
+🏢ريت — صناديق عقارية: أضعف فئة ثابتة (40.9%) → −5.<br>
+🚀فوق قمة 40ي — اخترق أعلى 40 يوماً فعلاً (46.7% — غير ثابتة؛ إخبارية لا نقاط).<br>
+⛰️ في عمود السقف — أقرب قمة محورية فوق السعر والمسافة إليها %.<br>
+🪦 في عمود السقف — دعم قديم مكسور صار مقاومة فوق الرأس (نمط البابطين).<br>
+🌤️ — فسيح ≥10% أو بلا سقف خلال 250ي — النطاق الثابت الوحيد (52.6%)؛ نادر (~2%).<br>
+عتبة البقاء — EMA9 الأمس (رقم جامد): الإشارة سليمة ما دام الإغلاق النهائي فوقه (لخطة 3:15).<br>
+🔻/🟢 في الشريط — لون يوم المؤشر الآن: أحمر 40.2% / أخضر 46% مقاسة.<br>
+🏆/⭐/🔹 — تقييم هيكلي وصفي (فوضى+انعكاس+سيولة) — وصفٌ لا حافة؛ الدرجة والوسوم هما الحكم.<br>
+🎯 إرث (تبويب ش2-3) — يوم تجاوزِه كان يوم صيد؛ ما دام فوق EMA9 يحفظ ~60% من الحافة.<br>
+⚠️كسر EMA9 (تبويب ش2-3) — أغلق تحت المتوسط بعد التجاوز؛ الإشارة تحتضر.<br>
+🟡 عنقود صغير (الشريط) — يوم 5-7 عبور في الفوضى: نصف حافة (50%، نصفان 53/49) بإمساك هزيل (+0.16).<br>
+⚡قائد سيولة اليوم — أعلى مضاعف سيولة بين إشارات اليوم: أضعف إخوته مقاساً (39%؛ وداخل الصيد 53 مقابل 59 للأهدأ).
+</div>
+</body></html>
